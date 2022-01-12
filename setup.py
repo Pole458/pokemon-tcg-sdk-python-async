@@ -8,7 +8,7 @@ from pokemontcgsdkasync.config import __version__, __pypi_package_name__, __gith
 HERE = pathlib.Path(__file__).parent
 
 # The text of the README file
-README = (HERE / "README.md").read_text()
+README = (HERE / "README.md").read_text(encoding='utf-8')
 
 tests_require = [
     'mock',
