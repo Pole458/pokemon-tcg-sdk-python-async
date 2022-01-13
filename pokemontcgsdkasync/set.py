@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from dacite import from_dict
+
+from pokemontcgsdkasync import SingleQuery, MultipleQuery
 from pokemontcgsdkasync.legality import Legality
 from pokemontcgsdkasync.querybuilder import QueryBuilder
 from pokemontcgsdkasync.setimage import SetImage
@@ -22,13 +25,18 @@ class Set:
     updatedAt: str
 
     @staticmethod
-    async def find(set_id):
-        return await QueryBuilder(Set).find(set_id)
+    def find(set_id) -> SingleQuery:
+        return QueryBuilder(Set, Set.transform).find(set_id)
 
     @staticmethod
-    async def where(**kwargs):
-        return await QueryBuilder(Set).where(**kwargs)
+    def where(**kwargs) -> MultipleQuery:
+        return QueryBuilder(Set, Set.transform).where(**kwargs)
 
     @staticmethod
-    async def all():
-        return await QueryBuilder(Set).all()
+    def all() -> MultipleQuery:
+        return QueryBuilder(Set, Set.transform).all()
+
+    @staticmethod
+    def transform(response):
+        response = from_dict(Set, response)
+        return response

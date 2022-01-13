@@ -39,8 +39,7 @@ class AsyncClientContext:
         """
         try:
             async with cls._session.get("/v2/" + url, params=params) as resp:
-                response = await resp.json()
-                return response
+                return await resp.json()
 
         except HTTPException as err:
             raise PokemonTcgException(err.read())

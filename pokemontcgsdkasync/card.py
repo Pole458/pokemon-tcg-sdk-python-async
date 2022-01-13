@@ -1,16 +1,19 @@
 from dataclasses import dataclass
 from typing import Optional, List
 
+from dacite import from_dict
+
+from pokemontcgsdkasync import SingleQuery, MultipleQuery
 from pokemontcgsdkasync.ability import Ability
 from pokemontcgsdkasync.ancienttrait import AncientTrait
 from pokemontcgsdkasync.attack import Attack
 from pokemontcgsdkasync.cardimage import CardImage
+from pokemontcgsdkasync.cardmarket import Cardmarket
 from pokemontcgsdkasync.legality import Legality
 from pokemontcgsdkasync.querybuilder import QueryBuilder
 from pokemontcgsdkasync.resistance import Resistance
 from pokemontcgsdkasync.set import Set
 from pokemontcgsdkasync.tcgplayer import TCGPlayer
-from pokemontcgsdkasync.cardmarket import Cardmarket
 from pokemontcgsdkasync.weakness import Weakness
 
 
@@ -47,23 +50,28 @@ class Card:
     weaknesses: Optional[List[Weakness]]
 
     @staticmethod
-    async def find(card_id: str):
-        return await QueryBuilder(Card, Card.transform).find(card_id)
+    def find(card_id: str) -> SingleQuery:
+        return QueryBuilder(Card, Card.transform).find(card_id)
 
     @staticmethod
-    async def where(**kwargs):
-        return await QueryBuilder(Card, Card.transform).where(**kwargs)
+    def where(**kwargs) -> MultipleQuery:
+        return QueryBuilder(Card, Card.transform).where(**kwargs)
 
     @staticmethod
-    async def all():
-        return await QueryBuilder(Card, Card.transform).all()
+    def all() -> MultipleQuery:
+        return QueryBuilder(Card, Card.transform).all()
 
     @staticmethod
     def transform(response):
+
+        # Transform json keys into names that are safe for python properties
         if response.get('tcgplayer', {}).get('prices', {}).get('1stEditionNormal'):
             response['tcgplayer']['prices']['firstEditionNormal'] = response['tcgplayer']['prices'].pop(
                 '1stEditionNormal')
         if response.get('tcgplayer', {}).get('prices', {}).get('1stEditionHolofoil'):
             response['tcgplayer']['prices']['firstEditionHolofoil'] = response['tcgplayer']['prices'].pop(
                 '1stEditionHolofoil')
+
+        response = from_dict(Card, response)
+
         return response

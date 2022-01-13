@@ -8,7 +8,7 @@ class TestCard(unittest.IsolatedAsyncioTestCase):
 
     async def test_find_returns_card(self):
         async with AsyncClientContext():
-            card: Card = await Card.find('xy7-54')
+            card: Card = await Card.find('xy7-54').get()
 
             self.assertEqual('xy7-54', card.id)
             self.assertEqual('Gardevoir', card.name)
@@ -35,15 +35,22 @@ class TestCard(unittest.IsolatedAsyncioTestCase):
 
     async def test_all_with_params_return_cards(self):
         async with AsyncClientContext():
-            cards: List[Card] = await Card.where(q='supertype:pokemon subtypes:mega')
+            cards: List[Card] = await Card.where(q='supertype:pokemon subtypes:mega').get()
             self.assertTrue(len(cards) >= 70)
 
     async def test_all_with_page_returns_cards(self):
         async with AsyncClientContext():
-            cards: List[Card] = await Card.where(page=1)
+            cards: List[Card] = await Card.where(page=1).get()
             self.assertEqual(250, len(cards))
 
     async def test_all_with_page_and_page_size_returns_card(self):
         async with AsyncClientContext():
-            cards: List[Card] = await Card.where(page=1, pageSize=1)
+            cards: List[Card] = await Card.where(page=1, pageSize=1).get()
             self.assertEqual(1, len(cards))
+
+    async def test_where_generator(self):
+        async with AsyncClientContext():
+            c = 0
+            async for card in Card.where(q='set.id:pl3', orderBy='?orderBy=number', pageSize=100).generator():
+                c += 1
+            assert c == 153

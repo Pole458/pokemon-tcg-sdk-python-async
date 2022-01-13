@@ -1,6 +1,4 @@
-from dacite import from_dict
-
-from pokemontcgsdkasync.asyncclientcontext import AsyncClientContext
+from pokemontcgsdkasync.query import SingleQuery, MultipleQuery, ArrayQuery
 
 
 class QueryBuilder:
@@ -10,74 +8,35 @@ class QueryBuilder:
         self.type = resource_type
         self.transform = transform
 
-    async def find(self, resource_id: str):
-        """Get a resource by its id
+    def find(self, resource_id: str) -> SingleQuery:
+        """Builds a SingleQuery
         
         Args:
             resource_id (string): Resource id
         Returns:
-            object: Instance of the resource type
+            SingleQuery: SingleQuery to retrieve the data
         """
+
         url = "{}/{}".format(self.type.RESOURCE, resource_id)
-        response = (await AsyncClientContext.get(url))['data']
+        return SingleQuery(self.type, self.transform, url, self.params)
 
-        # Transform json keys into names that are safe for python properties
-        if self.transform:
-            response = self.transform(response)
-
-        return from_dict(self.type, response)
-
-    async def where(self, **kwargs):
+    def where(self, **kwargs) -> MultipleQuery:
         """Adds a parameter to the dictionary of query parameters
         
         Args:
             **kwargs: Arbitrary keyword arguments.
         Returns:
-            list of object: List of resource objects
+            MultipleQuery: Multiple query to retrieve the data
         """
+
         for key, value in kwargs.items():
             self.params[key] = value
 
-        return await self.all()
+        return self.all()
 
-    async def all(self):
-        """Get all resources, automatically paging through data
+    def all(self) -> MultipleQuery:
+        return MultipleQuery(self.type, self.transform, self.type.RESOURCE, self.params)
 
-        Returns:
-            list of object: List of resource objects
-        """
+    def array(self) -> ArrayQuery:
+        return ArrayQuery(self.type.RESOURCE)
 
-        result_list = []
-        fetch_all = True
-        url = self.type.RESOURCE
-
-        if 'page' in self.params:
-            fetch_all = False
-        else:
-            self.params['page'] = 1
-
-        while True:
-            response = (await AsyncClientContext.get(url, self.params))['data']
-            if len(response) > 0:
-                if self.transform:
-                    response = [self.transform(i) for i in response]
-
-                result_list.extend([from_dict(self.type, item) for item in response])
-
-                if fetch_all:
-                    self.params['page'] += 1
-                else:
-                    break
-            else:
-                break
-
-        return result_list
-
-    async def array(self):
-        """Get all resources and return the result as an array
-
-        Returns:
-            array of str: Array of resources
-        """
-        url = self.type.RESOURCE
-        return (await AsyncClientContext.get(url, self.params))['data']

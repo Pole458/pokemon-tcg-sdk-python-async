@@ -83,44 +83,64 @@ Import (Card and Set will be most used)
 
 #### Find a card by id
 
-    card = await Card.find('xy1-1')
+    card = await Card.find('xy1-1').get()
 
 #### Filter Cards via query parameters
 
-    cards = await Card.where(q='set.name:generations supertype:pokemon')
+    # List (may take a while)
+    cards = await Card.where(q='set.name:generations supertype:pokemon').get()
+    
+    # Generator
+    async for card in Card.where(q='set.name:generations supertype:pokemon').generator():
+        ...
 
-#### Find all cards (will take a while)
+#### Find all cards
 
-    cards = await Card.all()
+    # List (will take a while)
+    cards = await Card.all().get()
+
+    # Generator
+    async for card in Card.all().generator():
+        ...
 
 #### Get all cards, but only a specific page of data
 
-    cards = await Card.where(page=5, pageSize=250)
+    cards = await Card.where(page=5, pageSize=250).get()
 
 #### Find a set by code
 
-    set = await Set.find('base1')
+    set = await Set.find('base1').get()
 
 #### Filter sets via query parameters
 
-    sets = await Set.where(q='legalities.standard:legal')
+    # List
+    sets = await Set.where(q='legalities.standard:legal').get()
+
+    # Generator
+    async for set in Set.where(q='legalities.standard:legal').generator():
+        ...
 
 #### Get all Sets
+    
+    # List
+    sets = await Set.all().get()
 
-    sets = await Set.all()
+    # Generator
+    async for set in Set.all().generator():
+        ...
 
 #### Get all Types
 
-    types = await Type.all()
+    types = await Type.all().get()
 
 #### Get all Subtypes
 
-    subtypes = await Subtype.all()
+    subtypes = await Subtype.all().get()
 
 #### Get all Supertypes
 
-    supertypes = await Supertype.all()
+    supertypes = await Supertype.all().get()
 
 #### Get all Rarities
 
-    rarities = await Rarity.all()
+    rarities = await Rarity.all().get()
